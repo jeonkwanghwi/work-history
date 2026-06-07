@@ -102,7 +102,31 @@ function App() {
     try { localStorage.setItem("theme", theme); } catch (e) { /* 저장 차단 환경 무시 */ }
   }, [theme]);
 
-  const toggleTheme = () => setTheme((t) => (t === "dark" ? "light" : "dark"));
+  const toggleTheme = (e) => {
+    const next = theme === "dark" ? "light" : "dark";
+    const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    // 미지원·모션 끔이면 기존 방식(부드러운 색 전환)으로 폴백
+    if (!document.startViewTransition || reduce) { setTheme(next); return; }
+
+    // 클릭 지점에서 원형으로 번지게
+    const x = (e && e.clientX) || window.innerWidth - 40;
+    const y = (e && e.clientY) || window.innerHeight - 40;
+    const endR = Math.hypot(Math.max(x, window.innerWidth - x), Math.max(y, window.innerHeight - y));
+
+    const t = document.startViewTransition(() => {
+      // 스냅샷 전에 동기적으로 테마 반영 (effect는 비동기라 직접 속성도 설정)
+      ReactDOM.flushSync(() => {
+        document.documentElement.setAttribute("data-theme", next);
+        setTheme(next);
+      });
+    });
+    t.ready.then(() => {
+      document.documentElement.animate(
+        { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${endR}px at ${x}px ${y}px)`] },
+        { duration: 480, easing: "cubic-bezier(.22,.61,.36,1)", pseudoElement: "::view-transition-new(root)" }
+      );
+    });
+  };
 
   return (
     <div className="app">

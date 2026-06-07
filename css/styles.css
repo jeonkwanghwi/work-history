@@ -535,6 +535,39 @@ html[data-theme="dark"] .award-yr li .pill { color: var(--accent); }
 }
 
 /* =========================================================================
+   테마 전환 — 원형 와이프 (View Transitions API)
+   기본 크로스페이드를 끄고, 새 화면을 원형 clip-path로 드러낸다.
+   ========================================================================= */
+::view-transition-old(root),
+::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
+::view-transition-old(root) { z-index: 1; }
+::view-transition-new(root) { z-index: 9999; }
+
+/* =========================================================================
+   온브랜드 라인아트 모션 (카드가 들어오면 그려짐 / 타임라인 / 히어로 밑줄)
+   ========================================================================= */
+@media (prefers-reduced-motion: no-preference) {
+  /* 1. 프로젝트 썸네일 모티프 선이 스스로 그려진다 */
+  .card-thumb svg.motif :is(path, circle, rect, ellipse, line) {
+    stroke-dasharray: 400; stroke-dashoffset: 400;
+  }
+  .reveal.is-in .card-thumb svg.motif :is(path, circle, rect, ellipse, line) {
+    animation: draw 1.1s var(--ease) .15s forwards;
+  }
+  @keyframes draw { to { stroke-dashoffset: 0; } }
+
+  /* 2. 경력 타임라인: 진행선이 위→아래로 차오르고 점이 톡 등장 */
+  .reveal .tl-item::before { transform: scaleY(0); transform-origin: top; transition: transform .6s var(--ease); }
+  .reveal.is-in .tl-item::before { transform: scaleY(1); }
+  .reveal .tl-item::after { transform: scale(0); transition: transform .42s var(--ease) .18s; }
+  .reveal.is-in .tl-item::after { transform: scale(1); }
+
+  /* 3. 히어로 강조 밑줄이 좌→우로 그어진다 */
+  .reveal .hl::after { transform: scaleX(0); transform-origin: left; transition: transform .6s var(--ease) .35s; }
+  .reveal.is-in .hl::after { transform: scaleX(1); }
+}
+
+/* =========================================================================
    반응형
    ========================================================================= */
 @media (max-width: 980px) {
