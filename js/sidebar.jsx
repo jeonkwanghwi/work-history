@@ -23,30 +23,7 @@ function Avatar() {
   );
 }
 
-function BrandSwitcher({ brand, setBrand }) {
-  return (
-    <div className="brand-box">
-      <div className="brand-label">
-        <span>Brand</span>
-        <span className="cur">{BRANDS[brand].name}</span>
-      </div>
-      <div className="swatches">
-        {Object.keys(BRANDS).map((k) => (
-          <button
-            key={k}
-            className={"swatch" + (k === brand ? " on" : "")}
-            style={{ background: BRANDS[k].accent }}
-            onClick={() => setBrand(k)}
-            title={BRANDS[k].name}
-            aria-label={BRANDS[k].name + " 색상"}
-          />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function Sidebar({ active, theme, toggleTheme, brand, setBrand, open, setOpen }) {
+function Sidebar({ active, theme, toggleTheme, open, setOpen }) {
   const go = (e, id) => {
     e.preventDefault();
     const el = document.getElementById(id);
@@ -81,7 +58,6 @@ function Sidebar({ active, theme, toggleTheme, brand, setBrand, open, setOpen })
       </nav>
 
       <div className="side-foot">
-        <BrandSwitcher brand={brand} setBrand={setBrand} />
         <div className="foot-row">
           <div className="socials">
             <a className="icon-btn" href={PROFILE.github} target="_blank" rel="noreferrer" aria-label="GitHub"><Icon.github /></a>

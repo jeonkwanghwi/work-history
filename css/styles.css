@@ -189,27 +189,6 @@ section.block:first-of-type { border-top: 0; }
 
 .side-foot { margin-top: auto; padding-top: 22px; display: flex; flex-direction: column; gap: 16px; }
 
-/* brand switcher */
-.brand-box { display: flex; flex-direction: column; gap: 9px; }
-.brand-label {
-  font-family: var(--font-mono); font-size: 10px; letter-spacing: .14em;
-  text-transform: uppercase; color: var(--ink-3); display:flex; justify-content: space-between; align-items:center;
-  white-space: nowrap; gap: 10px;
-}
-.brand-label .cur { color: var(--accent); }
-.swatches { display: flex; gap: 8px; flex-wrap: wrap; }
-.swatch {
-  width: 26px; height: 26px; border-radius: 8px; cursor: pointer;
-  border: 2px solid transparent; padding: 0; position: relative;
-  transition: transform .18s var(--ease), border-color .18s;
-}
-.swatch:hover { transform: translateY(-2px) scale(1.06); }
-.swatch.on { border-color: var(--ink); }
-.swatch.on::after {
-  content: ""; position: absolute; inset: 0; margin: auto; width: 7px; height: 7px;
-  border-radius: 50%; background: #fff; mix-blend-mode: difference;
-}
-
 /* utility row: theme toggle + socials */
 .foot-row { display: flex; align-items: center; gap: 8px; justify-content: space-between; }
 .icon-btn {

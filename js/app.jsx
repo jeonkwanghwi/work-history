@@ -7,7 +7,6 @@ const { Sidebar, TopBar, NAV, About, Experience, Projects, ProjectModal, Skills,
    ⬇⬇⬇  여기 한 줄만 바꾸면 전체 색상 무드가 바뀝니다.  ⬇⬇⬇
    사용 가능: 'default' | 'naver' | 'coupang' | 'hanwha' | 'sk' | 'kakao' | 'toss'
    (프리셋 색상은 js/data.jsx 의 BRANDS 에서 정의·추가)
-   화면 좌측 하단 스위처로도 미리보기할 수 있습니다.
    ===================================================================== */
 const ACTIVE_BRAND = "default";
 
@@ -45,14 +44,12 @@ function useScrollSpy(ids) {
 
 function App() {
   const [theme, setTheme] = React.useState(DEFAULT_THEME);
-  const [brand, setBrand] = React.useState(ACTIVE_BRAND);
   const [open, setOpen] = React.useState(false);     // 모바일 사이드바
   const [modal, setModal] = React.useState(null);    // 프로젝트 모달
 
   const active = useScrollSpy(NAV.map((n) => n.id));
 
   React.useEffect(() => { document.documentElement.setAttribute("data-theme", theme); }, [theme]);
-  React.useEffect(() => { applyBrand(brand); }, [brand]);
 
   const toggleTheme = () => setTheme((t) => (t === "dark" ? "light" : "dark"));
 
@@ -61,7 +58,6 @@ function App() {
       <Sidebar
         active={active}
         theme={theme} toggleTheme={toggleTheme}
-        brand={brand} setBrand={setBrand}
         open={open} setOpen={setOpen}
       />
       <TopBar theme={theme} toggleTheme={toggleTheme} setOpen={setOpen} />
