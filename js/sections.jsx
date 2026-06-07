@@ -3,11 +3,31 @@
    ========================================================================= */
 const { Icon: I, Motif: M } = window;
 
-/* 스크롤 등장 래퍼 — 표시는 전적으로 CSS view-timeline이 담당 (JS 타이머 불필요).
-   delay는 살짝의 시각적 어긋남을 위해 transition-delay가 아닌 animation-range 미세조정 대신 생략. */
-function Reveal({ children, tag = "div", className = "", style }) {
+/* 스크롤 등장 래퍼 — IntersectionObserver로 뷰포트 진입을 감지해 .is-in을 부여.
+   모든 최신 브라우저에서 동작하고, delay(ms)로 순차 등장을 만든다. */
+function Reveal({ children, tag = "div", className = "", style, delay = 0 }) {
   const Tag = tag;
-  return <Tag className={"reveal " + className} style={style}>{children}</Tag>;
+  const ref = React.useRef(null);
+  const [shown, setShown] = React.useState(false);
+  React.useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      ([e]) => { if (e.isIntersecting) { setShown(true); io.disconnect(); } },
+      { threshold: 0.12, rootMargin: "0px 0px -8% 0px" }
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+  return (
+    <Tag
+      ref={ref}
+      className={"reveal " + (shown ? "is-in " : "") + className}
+      style={{ ...style, transitionDelay: delay ? delay + "ms" : undefined }}
+    >
+      {children}
+    </Tag>
+  );
 }
 
 function SectionHead({ kicker, title, sub }) {

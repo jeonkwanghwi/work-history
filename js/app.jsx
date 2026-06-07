@@ -10,8 +10,18 @@ const { Sidebar, TopBar, NAV, About, Experience, Projects, ProjectModal, Skills,
    ===================================================================== */
 const ACTIVE_BRAND = "default";
 
-/* 기본 테마: 'dark' | 'light' */
+/* 기본 테마(저장값·OS 설정이 모두 없을 때): 'dark' | 'light' */
 const DEFAULT_THEME = "light";
+
+/* 초기 테마 결정: 사용자가 고른 값(localStorage) > OS 설정 > 기본값 */
+function getInitialTheme() {
+  try {
+    const saved = localStorage.getItem("theme");
+    if (saved === "dark" || saved === "light") return saved;
+  } catch (e) { /* localStorage 차단 환경 무시 */ }
+  if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) return "dark";
+  return DEFAULT_THEME;
+}
 
 function applyBrand(key) {
   const b = window.BRANDS[key] || window.BRANDS.default;
@@ -43,13 +53,16 @@ function useScrollSpy(ids) {
 }
 
 function App() {
-  const [theme, setTheme] = React.useState(DEFAULT_THEME);
+  const [theme, setTheme] = React.useState(getInitialTheme);
   const [open, setOpen] = React.useState(false);     // 모바일 사이드바
   const [modal, setModal] = React.useState(null);    // 프로젝트 모달
 
   const active = useScrollSpy(NAV.map((n) => n.id));
 
-  React.useEffect(() => { document.documentElement.setAttribute("data-theme", theme); }, [theme]);
+  React.useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+    try { localStorage.setItem("theme", theme); } catch (e) { /* 저장 차단 환경 무시 */ }
+  }, [theme]);
 
   const toggleTheme = () => setTheme((t) => (t === "dark" ? "light" : "dark"));
 
@@ -80,7 +93,7 @@ function App() {
 }
 
 /* 초기 브랜드/테마를 즉시 적용 (FOUC 방지) */
-document.documentElement.setAttribute("data-theme", DEFAULT_THEME);
+document.documentElement.setAttribute("data-theme", getInitialTheme());
 applyBrand(ACTIVE_BRAND);
 
 ReactDOM.createRoot(document.getElementById("root")).render(<App />);

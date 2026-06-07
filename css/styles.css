@@ -458,23 +458,17 @@ html[data-theme="dark"] .award-yr li .pill { color: var(--accent); }
 /* =========================================================================
    모션 — 스크롤 페이드인
    ========================================================================= */
-/* 스크롤 등장: 기본은 '항상 보이는' 정적 상태(opacity:1).
-   진입 모션은 CSS view-timeline 기반 슬라이드+페이드. 애니메이션이 멈춰도
-   최저 불투명도가 충분히 높아(.35) 내용이 항상 식별됨. */
+/* 스크롤 등장: IntersectionObserver가 .is-in을 붙이면 슬라이드+페이드.
+   모션을 끈 사용자(prefers-reduced-motion)에겐 처음부터 보이게 둔다. */
 .reveal { opacity: 1; }
-@supports (animation-timeline: view()) {
+@media (prefers-reduced-motion: no-preference) {
   .reveal {
-    animation: revealView linear both;
-    animation-timeline: view();
-    animation-range: entry 0% entry 65%;
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity .6s var(--ease), transform .6s var(--ease);
+    will-change: opacity, transform;
   }
-}
-@keyframes revealView {
-  from { opacity: .35; transform: translateY(24px); }
-  to   { opacity: 1;   transform: none; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .reveal { opacity: 1 !important; animation: none !important; transform: none !important; }
+  .reveal.is-in { opacity: 1; transform: none; }
 }
 
 /* =========================================================================
