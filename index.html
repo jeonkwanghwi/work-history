@@ -33,7 +33,16 @@
   <link rel="stylesheet" href="css/styles.css" />
 </head>
 <body>
-  <div id="root"></div>
+  <div id="root">
+    <!-- React 마운트 전 잠깐 보이는 로딩 표시 (마운트되면 교체됨) -->
+    <div class="boot" aria-live="polite">
+      <div class="boot-spin"></div>
+      <p>불러오는 중…</p>
+    </div>
+  </div>
+  <noscript>
+    <div class="noscript-msg">이 포트폴리오는 자바스크립트로 동작합니다. 브라우저에서 자바스크립트를 켜고 다시 열어 주세요.</div>
+  </noscript>
 
   <!-- React (production, pinned) + Babel -->
   <script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js" integrity="sha384-DGyLxAyjq0f9SPpVevD6IgztCFlnMF6oW/XQGmfe+IsZ8TqEiDrcHkMLKI6fiB/Z" crossorigin="anonymous"></script>

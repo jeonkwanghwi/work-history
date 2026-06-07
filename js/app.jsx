@@ -1,7 +1,45 @@
 /* =========================================================================
    app.jsx — App 조립, 스크롤스파이, 테마/브랜드 상태, mount
    ========================================================================= */
-const { Sidebar, TopBar, NAV, About, Experience, Projects, ProjectModal, Skills, Education, Contact } = window;
+const { Sidebar, TopBar, NAV, About, Experience, Projects, ProjectModal, Skills, Education, Contact, Icon } = window;
+
+/* 상단 스크롤 진행 바 */
+function ScrollProgress() {
+  const [pct, setPct] = React.useState(0);
+  React.useEffect(() => {
+    const onScroll = () => {
+      const h = document.documentElement;
+      const max = h.scrollHeight - h.clientHeight;
+      setPct(max > 0 ? (h.scrollTop / max) * 100 : 0);
+    };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => { window.removeEventListener("scroll", onScroll); window.removeEventListener("resize", onScroll); };
+  }, []);
+  return <div className="scroll-progress" style={{ transform: `scaleX(${pct / 100})` }} aria-hidden="true" />;
+}
+
+/* 맨 위로 버튼 — 일정 스크롤 후 노출 */
+function BackToTop() {
+  const [show, setShow] = React.useState(false);
+  React.useEffect(() => {
+    const onScroll = () => setShow(window.scrollY > 600);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+  return (
+    <button
+      className={"to-top" + (show ? " show" : "")}
+      onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+      aria-label="맨 위로"
+      tabIndex={show ? 0 : -1}
+    >
+      <Icon.arrowUp />
+    </button>
+  );
+}
 
 /* =====================================================================
    ⬇⬇⬇  여기 한 줄만 바꾸면 전체 색상 무드가 바뀝니다.  ⬇⬇⬇
@@ -68,6 +106,7 @@ function App() {
 
   return (
     <div className="app">
+      <ScrollProgress />
       <Sidebar
         active={active}
         theme={theme} toggleTheme={toggleTheme}
@@ -88,6 +127,7 @@ function App() {
       </main>
 
       {modal && <ProjectModal project={modal} onClose={() => setModal(null)} />}
+      <BackToTop />
     </div>
   );
 }

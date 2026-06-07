@@ -40,6 +40,36 @@ function SectionHead({ kicker, title, sub }) {
   );
 }
 
+/* 숫자 카운트업 — 화면에 들어오면 0 → 목표값. 소수점 자리수는 원본 문자열 기준. */
+function CountUp({ value }) {
+  const decimals = (String(value).split(".")[1] || "").length;
+  const target = parseFloat(value);
+  const ref = React.useRef(null);
+  const [display, setDisplay] = React.useState(isNaN(target) ? value : (0).toFixed(decimals));
+  React.useEffect(() => {
+    if (isNaN(target)) return;
+    const el = ref.current;
+    if (!el) return;
+    const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduce) { setDisplay(target.toFixed(decimals)); return; }
+    let raf, start;
+    const duration = 1100;
+    const tick = (t) => {
+      if (start === undefined) start = t;
+      const p = Math.min((t - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - p, 3);   // easeOutCubic
+      setDisplay((target * eased).toFixed(decimals));
+      if (p < 1) raf = requestAnimationFrame(tick);
+    };
+    const io = new IntersectionObserver(([e]) => {
+      if (e.isIntersecting) { raf = requestAnimationFrame(tick); io.disconnect(); }
+    }, { threshold: 0.4 });
+    io.observe(el);
+    return () => { io.disconnect(); if (raf) cancelAnimationFrame(raf); };
+  }, [value]);
+  return <span ref={ref}>{display}</span>;
+}
+
 /* ── About / Hero ─────────────────────────────────────────────────────── */
 function About() {
   return (
@@ -63,7 +93,7 @@ function About() {
         <div className="hero-stats">
           {PROFILE.stats.map((s, i) => (
             <div className="st" key={i}>
-              <div className="n">{s.n}<span>{s.suffix}</span></div>
+              <div className="n"><CountUp value={s.n} /><span>{s.suffix}</span></div>
               <div className="l">{s.label}</div>
             </div>
           ))}
@@ -105,8 +135,36 @@ function Experience() {
 /* ── Projects ─────────────────────────────────────────────────────────── */
 function ProjectCard({ p, idx, onOpen }) {
   const Mt = M[p.motif] || M.network;
+  const ref = React.useRef(null);
+  const open = () => onOpen(p);
+  const onKey = (e) => {
+    if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(); }
+  };
+  const onMove = (e) => {                     // 커서 위치 → 미세 기울기 (CSS가 적용 여부 판단)
+    const el = ref.current; if (!el) return;
+    const r = el.getBoundingClientRect();
+    const px = (e.clientX - r.left) / r.width - 0.5;
+    const py = (e.clientY - r.top) / r.height - 0.5;
+    el.style.setProperty("--ry", (px * 4).toFixed(2) + "deg");
+    el.style.setProperty("--rx", (py * -4).toFixed(2) + "deg");
+  };
+  const onLeave = () => {
+    const el = ref.current; if (!el) return;
+    el.style.setProperty("--rx", "0deg");
+    el.style.setProperty("--ry", "0deg");
+  };
   return (
-    <div className="card" onClick={() => onOpen(p)}>
+    <div
+      ref={ref}
+      className="card"
+      role="button"
+      tabIndex={0}
+      aria-label={p.title + " 자세히 보기"}
+      onClick={open}
+      onKeyDown={onKey}
+      onMouseMove={onMove}
+      onMouseLeave={onLeave}
+    >
       <div className="card-thumb">
         <span className="pin">{p.categoryLabel}</span>
         <Mt />
@@ -169,11 +227,30 @@ function ModalBlock({ n, title, items }) {
 }
 
 function ProjectModal({ project, onClose }) {
+  const modalRef = React.useRef(null);
   React.useEffect(() => {
-    const onKey = (e) => { if (e.key === "Escape") onClose(); };
+    const prevFocus = document.activeElement;          // 모달 열기 전 포커스 기억
+    const modal = modalRef.current;
+    const closeBtn = modal && modal.querySelector(".modal-close");
+    if (closeBtn) closeBtn.focus();                    // 초기 포커스를 닫기 버튼으로
+
+    const onKey = (e) => {
+      if (e.key === "Escape") { onClose(); return; }
+      if (e.key === "Tab" && modal) {                  // Tab을 모달 안에 가둔다
+        const list = Array.from(modal.querySelectorAll('button, [href], [tabindex]:not([tabindex="-1"])'));
+        if (!list.length) return;
+        const first = list[0], last = list[list.length - 1];
+        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+      }
+    };
     document.addEventListener("keydown", onKey);
     document.body.style.overflow = "hidden";
-    return () => { document.removeEventListener("keydown", onKey); document.body.style.overflow = ""; };
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = "";
+      if (prevFocus && prevFocus.focus) prevFocus.focus();   // 닫을 때 원래 카드로 복귀
+    };
   }, [onClose]);
 
   if (!project) return null;
@@ -182,7 +259,7 @@ function ProjectModal({ project, onClose }) {
   const idx = PROJECTS.indexOf(p);
   return (
     <div className="modal-scrim" onClick={onClose}>
-      <div className="modal" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
+      <div className="modal" ref={modalRef} onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-label={p.title}>
         <button className="modal-close" onClick={onClose} aria-label="닫기"><I.close /></button>
         <div className="modal-hd">
           <div className="modal-banner">
